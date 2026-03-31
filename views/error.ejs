@@ -1,0 +1,33 @@
+<% layout("./layouts/boilerplate.ejs") %>
+
+<div class="container mt-5">
+
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+
+            <div class="card border-danger shadow">
+
+                <div class="card-header bg-danger text-white text-center">
+                    <h4>Error <%= statusCode %></h4>
+                </div>
+
+                <div class="card-body text-center">
+
+                    <div class="alert alert-danger">
+                        <h5 class="mb-2">
+                            <%= message %>
+                        </h5>
+                    </div>
+
+                    <a href="/listings" class="btn btn-dark mt-3">
+                        Go Back to Listings
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+</div>
