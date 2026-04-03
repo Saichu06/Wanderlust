@@ -6,7 +6,7 @@
 
 <h2 class="mt-3 mb-3">Edit Your Listing</h2>
 
-<form method="POST" action="/listings/<%= listing._id %>?_method=PUT">
+<form method="POST" action="/listings/<%= listing._id %>?_method=PUT" enctype="multipart/form-data">
 
     <div class="mb-3">
         <label for="title" class="form-label">Title</label>
@@ -19,15 +19,34 @@
         >
     </div>
 
+    <!-- Current Image Preview -->
     <div class="mb-3">
-        <label for="image" class="form-label">Image Link</label>
+        <label class="form-label">Current Image</label>
+        <div>
+            <img src="<%= originalImageUrl %>" alt="Current listing image" style="max-width: 100%; max-height: 200px; border-radius: 8px;">
+        </div>
+    </div>
+
+    <!-- New Image Upload with Preview -->
+    <div class="mb-3">
+        <label for="image" class="form-label">Upload New Image (Optional)</label>
         <input 
-            type="text"
+            type="file"
             class="form-control"
             name="listing[image]"
-            value="<%= listing.image %>"
-            required
+            id="image"
+            accept="image/*"
+            onchange="previewImage(event)"
         >
+        <div class="form-text">Leave empty to keep current image</div>
+    </div>
+
+    <!-- New Image Preview -->
+    <div id="imagePreview" style="display: none;" class="mb-3">
+        <label class="form-label">New Image Preview</label>
+        <div>
+            <img id="preview" src="#" alt="New image preview" style="max-width: 100%; max-height: 200px; border-radius: 8px;">
+        </div>
     </div>
 
     <div class="mb-3">
@@ -80,8 +99,35 @@
         Update
     </button>
 
+    <a href="/listings/<%= listing._id %>" class="btn btn-secondary mt-3 mb-3 ms-2">
+        Cancel
+    </a>
+
     <br><br>
 
 </form>
 </div>
 </div>
+
+<script>
+// Image preview function
+function previewImage(event) {
+    const reader = new FileReader();
+    reader.onload = function() {
+        const preview = document.getElementById('preview');
+        const previewDiv = document.getElementById('imagePreview');
+        preview.src = reader.result;
+        previewDiv.style.display = 'block';
+    }
+    if (event.target.files[0]) {
+        reader.readAsDataURL(event.target.files[0]);
+    }
+}
+</script>
+
+<style>
+    img {
+        object-fit: cover;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+</style>
