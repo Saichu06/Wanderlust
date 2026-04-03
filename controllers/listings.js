@@ -1,7 +1,31 @@
-const Listing = require("../models/listing")
+const Listing = require("../models/listing");
+const ExpressError = require("../utils/ExpressError");
+const axios = require('axios');
+
+// Helper function to get coordinates from address
+async function getCoordinates(location, country) {
+    const query = `${location}, ${country}`;
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`;
+    
+    try {
+        const response = await axios.get(url, {
+            headers: { 'User-Agent': 'Airbnb-Clone/1.0' }
+        });
+        
+        if (response.data && response.data[0]) {
+            return {
+                type: 'Point',
+                coordinates: [parseFloat(response.data[0].lon), parseFloat(response.data[0].lat)]
+            };
+        }
+    } catch (error) {
+        console.error("Geocoding error:", error);
+    }
+    return null;
+}
 
 module.exports.index = async (req, res) => {
-    const allListings = await Listing.find({});
+    const allListings = await Listing.find({}).populate("owner");
     res.render("listings/index.ejs", { allListings });
 }
 
@@ -16,7 +40,7 @@ module.exports.showListing = async (req, res) => {
         .populate({
             path: "reviews",
             populate: {
-                path: "author"   // 🔥 THIS FIXES YOUR ISSUE
+                path: "author"
             }
         })
         .populate("owner");
@@ -30,19 +54,33 @@ module.exports.showListing = async (req, res) => {
 }
 
 module.exports.createListing = async (req, res) => {
-    let url = req.file.path;
-    let filename = req.file.filename;
-    // console.log(url, filename);
-
     if (!req.body.listing) {
         throw new ExpressError(400, "Send valid data");
     }
 
-    const newListing = new Listing(req.body.listing);
+    // Check if user already has a listing
+    const existingListing = await Listing.findOne({ owner: req.user._id });
+    if (existingListing) {
+        req.flash("error", "You can only create ONE listing per account!");
+        return res.redirect("/listings");
+    }
 
-    // 🔥 Assign owner
+    const newListing = new Listing(req.body.listing);
     newListing.owner = req.user._id;
-    newListing.image = { url, filename };
+
+    // Get coordinates from location
+    const coords = await getCoordinates(req.body.listing.location, req.body.listing.country);
+    if (coords) {
+        newListing.geometry = coords;
+    }
+
+    // Handle image upload
+    if (req.file) {
+        newListing.image = {
+            url: req.file.path,
+            filename: req.file.filename
+        };
+    }
 
     await newListing.save();
 
@@ -50,9 +88,7 @@ module.exports.createListing = async (req, res) => {
     res.redirect("/listings");
 }
 
-
 module.exports.renderEditForm = async (req, res) => {
-
     const { id } = req.params;
     const listing = await Listing.findById(id);
 
@@ -62,9 +98,9 @@ module.exports.renderEditForm = async (req, res) => {
     }
 
     let originalImageUrl = listing.image.url;
-    originalImageUrl= originalImageUrl.replace("/upload","/upload/h_300,w_250");  
+    originalImageUrl = originalImageUrl.replace("/upload", "/upload/h_300,w_250");  
 
-    res.render("listings/edit.ejs", { listing , originalImageUrl});
+    res.render("listings/edit.ejs", { listing, originalImageUrl });
 }
 
 module.exports.updateListing = async (req, res) => {
@@ -73,6 +109,11 @@ module.exports.updateListing = async (req, res) => {
     }
 
     const { id } = req.params;
+
+    // Check if location changed
+    const oldListing = await Listing.findById(id);
+    const locationChanged = oldListing.location !== req.body.listing.location || 
+                           oldListing.country !== req.body.listing.country;
 
     const listing = await Listing.findByIdAndUpdate(id, req.body.listing, {
         new: true,
@@ -84,11 +125,21 @@ module.exports.updateListing = async (req, res) => {
         return res.redirect("/listings");
     }
 
+    // Update coordinates if location changed
+    if (locationChanged) {
+        const coords = await getCoordinates(req.body.listing.location, req.body.listing.country);
+        if (coords) {
+            listing.geometry = coords;
+            await listing.save();
+        }
+    }
+
     // Only update image if a new file was uploaded
     if (req.file) {
-        let url = req.file.path;
-        let filename = req.file.filename;
-        listing.image = { url, filename };
+        listing.image = {
+            url: req.file.path,
+            filename: req.file.filename
+        };
         await listing.save();
     }
 
@@ -97,7 +148,6 @@ module.exports.updateListing = async (req, res) => {
 }
 
 module.exports.deleteListing = async (req, res) => {
-
     const { id } = req.params;
 
     const listing = await Listing.findByIdAndDelete(id);

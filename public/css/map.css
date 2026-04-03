@@ -1,0 +1,26 @@
+/* public/css/map.css */
+#map {
+    margin-top: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Custom popup styling */
+.leaflet-popup-content-wrapper {
+    border-radius: 8px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.leaflet-popup-content {
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+/* Marker hover effect */
+.fa-map-marker-alt {
+    transition: transform 0.2s ease;
+}
+
+.fa-map-marker-alt:hover {
+    transform: scale(1.1);
+}

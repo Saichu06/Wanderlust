@@ -2,9 +2,7 @@
 
 <div class="row">
   <div class="col-8 offset-3 mt-3">
-    <h3>
-      <%= listing.title %>
-    </h3>
+    <h3><%= listing.title %></h3>
   </div>
 
   <div class="card col-6 offset-3 show-card mt-3 listing-card">
@@ -17,7 +15,6 @@
         📍 <%= listing.location %>, <%= listing.country %>
       </p>
 
-      <!-- Owner Information -->
       <hr />
       <p class="card-text text-muted small">
         <strong>Listed by:</strong>
@@ -32,12 +29,24 @@
     </div>
   </div>
 
+  <!-- Map Section - Just the container -->
+  <div class="col-6 offset-3 mb-3">
+    <div id="map" style="height: 300px; width: 100%; border-radius: 8px;"></div>
+  </div>
+
+  <!-- Hidden data for map.js -->
+  <div id="map-data" data-listing='<%= JSON.stringify({ 
+    title: listing.title, 
+    location: listing.location, 
+    country: listing.country, 
+    geometry: listing.geometry || null 
+  }) %>' style="display: none;"></div>
+
   <div class="col-6 offset-3 mt-3">
     <% if (currUser && listing.owner && listing.owner._id && listing.owner._id.toString()===currUser._id.toString()) { %>
       <a href="/listings/<%= listing._id %>/edit" class="btn btn-warning me-2">Edit</a>
       <form action="/listings/<%= listing._id %>?_method=DELETE" method="POST" style="display:inline;">
-        <button class="btn btn-danger"
-          onclick="return confirm('Are you sure you want to delete this listing?')">Delete</button>
+        <button class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this listing?')">Delete</button>
       </form>
     <% } %>
     <br><br>
@@ -100,7 +109,6 @@
                 <%= review.comment %>
               </p>
 
-              <!-- Show delete button only if user is review author OR listing owner -->
               <% if (currUser && currUser._id && ((review.author && review.author._id &&
                 review.author._id.toString()===currUser._id.toString()) || (listing.owner && listing.owner._id
                 && listing.owner._id.toString()===currUser._id.toString()))) { %>
@@ -121,19 +129,10 @@
   </div>
 </div>
 
-<script>
-  // Bootstrap form validation
-  (function () {
-    'use strict'
-    const forms = document.querySelectorAll('.needs-validation')
-    Array.from(forms).forEach(form => {
-      form.addEventListener('submit', event => {
-        if (!form.checkValidity()) {
-          event.preventDefault()
-          event.stopPropagation()
-        }
-        form.classList.add('was-validated')
-      }, false)
-    })
-  })()
-</script>
+<style>
+  #map {
+    margin-top: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+</style>
