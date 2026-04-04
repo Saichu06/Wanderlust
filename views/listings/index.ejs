@@ -1,25 +1,196 @@
 <% layout("./layouts/boilerplate.ejs") %>
-    <div style="margin: 10px;">
-        <br>
+<div style="margin: 10px;">
+    <br>
+</div>
+
+<style>
+    .filters-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    #filters {
+        display: flex;
+        gap: 1.5rem;
+        overflow-x: auto;
+        scroll-behavior: smooth;
+        flex: 1;
+        padding: 10px 0;
+        margin: 10px;
+    }
+
+    .filter {
+        text-align: center;
+        cursor: pointer;
+        flex-shrink: 0;
+        text-decoration: none;
+        transition: transform 0.2s ease;
+        margin-right: 20px;
+    }
+
+    .filter:hover {
+        transform: translateY(-3px);
+    }
+
+    .filter:hover i {
+        color: #ff385c;
+    }
+
+    .filter:hover p {
+        color: #ff385c;
+    }
+
+    .filter i {
+        font-size: 1.5rem;
+        color: #717171;
+        transition: color 0.2s ease;
+    }
+
+    .filter p {
+        font-size: 0.75rem;
+        color: #717171;
+        margin: 5px 0 0;
+        transition: color 0.2s ease;
+    }
+
+    .filter.active i,
+    .filter.active p {
+        color: #ff385c;
+    }
+
+    .scroll-btn {
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        cursor: pointer;
+        font-size: 18px;
+    }
+
+    .scroll-btn:hover {
+        background: #f7f7f7;
+    }
+
+    .tax-toggle {
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 30px;
+        padding: 8px 16px;
+        margin-left: 10px;
+        white-space: nowrap;
+    }
+
+    .form-switch {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0;
+    }
+
+    .form-check-input {
+        width: 40px;
+        height: 20px;
+        cursor: pointer;
+    }
+
+    .form-check-input:checked {
+        background-color: #ff385c;
+        border-color: #ff385c;
+    }
+
+    .form-check-label {
+        font-size: 0.85rem;
+        color: #222;
+        cursor: pointer;
+        margin: 0;
+    }
+
+    .listing-link {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .listing-card {
+        transition: transform 0.2s ease;
+        margin-bottom: 20px;
+    }
+
+    .listing-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .tax-amount {
+        font-size: 0.75rem;
+        color: #717171;
+        margin-left: 5px;
+    }
+</style>
+
+<div class="filters-container">
+    <button class="scroll-btn"
+        onclick="document.getElementById('filters').scrollBy({ left: -200, behavior: 'smooth' })">←</button>
+
+    <div id="filters">
+        <div class="filter"><i class="fa-solid fa-fire"></i><p>Trending</p></div>
+        <div class="filter"><i class="fa-solid fa-umbrella-beach"></i><p>Beachfront</p></div>
+        <div class="filter"><i class="fa-solid fa-tree"></i><p>Cabins</p></div>
+        <div class="filter"><i class="fa-solid fa-mountain"></i><p>Views</p></div>
+        <div class="filter"><i class="fa-solid fa-house-chimney"></i><p>Tiny Homes</p></div>
+        <div class="filter"><i class="fa-solid fa-gem"></i><p>Luxury</p></div>
+        <div class="filter"><i class="fa-regular fa-snowflake"></i><p>Skiing</p></div>
+        <div class="filter"><i class="fa-solid fa-campground"></i><p>Camping</p></div>
+        <div class="filter"><i class="fa-solid fa-bed"></i><p>Rooms</p></div>
+        <div class="filter"><i class="fa-solid fa-water-ladder"></i><p>Pools</p></div>
+        <div class="filter"><i class="fa-solid fa-paw"></i><p>Pets</p></div>
+        <div class="filter"><i class="fa-solid fa-landmark"></i><p>Historical</p></div>
+        <div class="filter"><i class="fa-solid fa-heart"></i><p>Romantic</p></div>
+        <div class="filter"><i class="fa-solid fa-person-hiking"></i><p>Adventure</p></div>
+        <div class="filter"><i class="fa-solid fa-tree"></i><p>Tropical</p></div>
     </div>
-    <!-- <form method="GET" action="/listings/new">
-        <button>Create New</button>
-    </form> -->
-<div class="row row-cols-lg-3 row-cols-sm-1 row-cols-md-2">
+
+    <button class="scroll-btn"
+        onclick="document.getElementById('filters').scrollBy({ left: 200, behavior: 'smooth' })">→</button>
+
+    <div class="tax-toggle">
+        <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" role="switch" id="taxSwitch">
+            <label class="form-check-label" for="taxSwitch">Show tax amount</label>
+        </div>
+    </div>
+</div>
+
+<div class="row row-cols-lg-3 row-cols-sm-1 row-cols-md-2 mt-3">
     <% for(let listing of allListings){ %>
-
-        <a href="/listings/<%= listing._id  %>" class="listing-link">
-
-    <div class="card listing-card" style="width: 20rem;">
-  <img src="<%= listing.image.url %>" class="card-img-top" alt="listing_image" style="height: 20rem;">
-   <div class="card-img-overlay"></div>
-  <div class="card-body">
-    <p class="card-text">
-        <b><%= listing.title  %></b> <br>
-        &#x20b9;<%= listing.price ? listing.price.toLocaleString("en-IN") : "0" %> /night
-    </p>
-  </div>
+        <a href="/listings/<%= listing._id %>" class="listing-link">
+            <div class="card listing-card">
+                <img src="<%= listing.image.url %>" class="card-img-top" alt="listing_image" style="height: 15rem; object-fit: cover;">
+                <div class="card-body">
+                    <h5 class="card-title"><%= listing.title %></h5>
+                    <p class="card-text text-muted"><%= listing.location %>, <%= listing.country %></p>
+                    <p class="card-text">
+                        <strong>₹<%= listing.price.toLocaleString("en-IN") %></strong>
+                        <span class="tax-amount" style="display: none;">+ ₹<%= Math.round(listing.price * 0.18).toLocaleString("en-IN") %> tax</span>
+                        / night
+                    </p>
+                </div>
+            </div>
+        </a>
+    <% } %>
 </div>
-</a>
- <% } %>
-</div>
+
+<script>
+    document.getElementById('taxSwitch').addEventListener('change', function() {
+        const taxSpans = document.querySelectorAll('.tax-amount');
+        taxSpans.forEach(span => {
+            if (this.checked) {
+                span.style.display = 'inline';
+            } else {
+                span.style.display = 'none';
+            }
+        });
+    });
+</script>

@@ -2,20 +2,35 @@
 
 <div class="row">
   <div class="col-8 offset-3 mt-3">
-    <h3><%= listing.title %></h3>
+    <h3>
+      <%= listing.title %>
+    </h3>
   </div>
 
   <div class="card col-6 offset-3 show-card mt-3 listing-card">
     <img src="<%= listing.image.url %>" class="card-img-top show-img" alt="listing_image" />
 
     <div class="card-body">
+      <!-- DESCRIPTION -->
       <p class="card-text">
-        <%= listing.description %> <br>
-        &#8377; <%= listing.price ? listing.price.toLocaleString("en-IN") : "0" %><br>
-        📍 <%= listing.location %>, <%= listing.country %>
+        <%= listing.description %>
+      </p>
+
+      <!-- PRICE -->
+      <p class="card-text">
+        <strong class="price-amount" data-original="<%= listing.price %>">
+          ₹<%= listing.price ? listing.price.toLocaleString("en-IN") : "0" %>
+        </strong> / night
+      </p>
+
+      <!-- LOCATION -->
+      <p class="card-text">
+        <i class="fa-solid fa-location-dot"></i> 📍 <%= listing.location %>, <%= listing.country %>
       </p>
 
       <hr />
+      
+      <!-- Owner Information -->
       <p class="card-text text-muted small">
         <strong>Listed by:</strong>
         <% if(listing.owner && listing.owner.username) { %>
@@ -29,7 +44,7 @@
     </div>
   </div>
 
-  <!-- Map Section - Just the container -->
+  <!-- Map Section -->
   <div class="col-6 offset-3 mb-3">
     <div id="map" style="height: 300px; width: 100%; border-radius: 8px;"></div>
   </div>
@@ -60,7 +75,7 @@
       <form action="/listings/<%= listing.id %>/reviews" method="POST" novalidate class="needs-validation mb-3">
 
         <fieldset class="starability-slot">
-          <legend>First rating:</legend>
+          <legend>Your Rating:</legend>
           <input type="radio" id="no-rate" class="input-no-rate" name="review[rating]" value="0" checked
             aria-label="No rating." />
           <input type="radio" id="first-rate1" name="review[rating]" value="1" />
@@ -104,7 +119,7 @@
               </h5>
               <p class="starability-result" data-rating="<%= review.rating %>">
                 Rated: <%= review.rating %> stars
-              </p>  
+              </p>
               <p class="card-text">
                 <%= review.comment %>
               </p>
@@ -133,6 +148,6 @@
   #map {
     margin-top: 20px;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 </style>
