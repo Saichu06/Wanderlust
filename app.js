@@ -16,7 +16,7 @@
     const reviewRouter = require("./routes/review");
     const userRouter = require("./routes/user");
 
-    const wrapAsync = require("./utils/wrapasync.js");
+    const wrapAsync = require("./utils/wrapAsync.js");
     const ExpressError = require("./utils/ExpressError.js");
 
     const path = require("path");
