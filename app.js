@@ -59,11 +59,22 @@ async function main() {
         await mongoose.connect(dbUrl);
         console.log("✅ MongoDB Connected");
 
-        // ✅ SESSION CONFIG (MOVED OUTSIDE MongoStore.create)
-        const sessionSecret = process.env.SESSION_SECRET || "fallback-secret-for-dev";
+        // ✅ SESSION STORE - FIXED FOR connect-mongo@4.6.0
+        const sessionSecret = process.env.SESSION_SECRET;
         
-        // ✅ FIXED: Create session middleware directly
-        const sessionMiddleware = session({
+        const store = MongoStore.create({
+            mongoUrl: dbUrl,
+            secret: sessionSecret,  // Changed from crypto.secret to secret
+            touchAfter: 24 * 3600,
+        });
+
+        store.on("error", (err) => {
+            console.log("❌ SESSION STORE ERROR:", err);
+        });
+
+        // ✅ SESSION CONFIG
+        app.use(session({
+            store,
             secret: sessionSecret,
             resave: false,
             saveUninitialized: false,  // Changed to false
@@ -73,17 +84,8 @@ async function main() {
                 secure: process.env.NODE_ENV === "production",
                 sameSite: 'lax',
             },
-            store: MongoStore.create({
-                mongoUrl: dbUrl,
-                crypto: {
-                    secret: sessionSecret,
-                },
-                touchAfter: 24 * 3600,
-                stringify: false,  // Add this to fix the error
-            }),
-        });
+        }));
 
-        app.use(sessionMiddleware);
         app.use(flash());
 
         // ---------------- PASSPORT ----------------
@@ -120,7 +122,6 @@ async function main() {
 
     } catch (err) {
         console.log("❌ ERROR:", err);
-        // Don't exit, just log the error
     }
 }
 
