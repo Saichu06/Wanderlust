@@ -10,7 +10,6 @@ const Listing = require("./models/listing.js");
 const Review = require("./models/review.js");
 
 const session = require("express-session");
-const MongoStore = require("connect-mongo");
 const flash = require("connect-flash");
 
 const listingRouter = require("./routes/listing");
@@ -59,27 +58,15 @@ async function main() {
         await mongoose.connect(dbUrl);
         console.log("✅ MongoDB Connected");
 
-        // ✅ SESSION STORE - FIXED FOR connect-mongo@4.6.0
-        const sessionSecret = process.env.SESSION_SECRET;
+        // ✅ SESSION CONFIG - WITHOUT MongoStore (using memory store)
+        const sessionSecret = process.env.SESSION_SECRET || "fallback-secret-for-dev";
         
-        const store = MongoStore.create({
-            mongoUrl: dbUrl,
-            secret: sessionSecret,  // Changed from crypto.secret to secret
-            touchAfter: 24 * 3600,
-        });
-
-        store.on("error", (err) => {
-            console.log("❌ SESSION STORE ERROR:", err);
-        });
-
-        // ✅ SESSION CONFIG
         app.use(session({
-            store,
             secret: sessionSecret,
             resave: false,
-            saveUninitialized: false,  // Changed to false
+            saveUninitialized: false,  // Changed to false for better performance
             cookie: {
-                maxAge: 1000 * 60 * 60 * 24 * 7,
+                maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
                 sameSite: 'lax',
@@ -122,6 +109,7 @@ async function main() {
 
     } catch (err) {
         console.log("❌ ERROR:", err);
+        process.exit(1);
     }
 }
 
