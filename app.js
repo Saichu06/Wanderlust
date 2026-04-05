@@ -7,7 +7,7 @@ const app = express();
 const mongoose = require("mongoose");
 
 const Listing = require("./models/listing.js");
-
+const Review = require("./models/review.js");
 
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
@@ -28,6 +28,7 @@ const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const User = require("./models/user.js");
 
+const { listingSchema, reviewSchema } = require("./schema.js");
 
 const methodOverride = require("method-override");
 
@@ -49,9 +50,7 @@ if (!dbUrl) {
     process.exit(1);
 }
 
-if (process.env.NODE_ENV !== "production") {
-    console.log("DB URL:", dbUrl);
-}
+console.log("DB URL:", dbUrl);
 
 // ---------------- MAIN FUNCTION ----------------
 async function main() {
@@ -60,32 +59,31 @@ async function main() {
         await mongoose.connect(dbUrl);
         console.log("✅ MongoDB Connected");
 
-        // ✅ SESSION STORE (AFTER DB CONNECTS)
-        const store = MongoStore.create({
-            client: mongoose.connection.getClient(),
-            crypto: {
-                secret: process.env.SESSION_SECRET,
-            },
-            touchAfter: 24 * 3600,
-        });
-
-        store.on("error", (err) => {
-            console.log("❌ SESSION STORE ERROR:", err);
-        });
-
-        // ✅ SESSION CONFIG
-        app.use(session({
-            store,
-            secret: process.env.SESSION_SECRET,
+        // ✅ SESSION CONFIG (MOVED OUTSIDE MongoStore.create)
+        const sessionSecret = process.env.SESSION_SECRET || "fallback-secret-for-dev";
+        
+        // ✅ FIXED: Create session middleware directly
+        const sessionMiddleware = session({
+            secret: sessionSecret,
             resave: false,
-            saveUninitialized: true,
+            saveUninitialized: false,  // Changed to false
             cookie: {
                 maxAge: 1000 * 60 * 60 * 24 * 7,
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
+                sameSite: 'lax',
             },
-        }));
+            store: MongoStore.create({
+                mongoUrl: dbUrl,
+                crypto: {
+                    secret: sessionSecret,
+                },
+                touchAfter: 24 * 3600,
+                stringify: false,  // Add this to fix the error
+            }),
+        });
 
+        app.use(sessionMiddleware);
         app.use(flash());
 
         // ---------------- PASSPORT ----------------
@@ -122,6 +120,7 @@ async function main() {
 
     } catch (err) {
         console.log("❌ ERROR:", err);
+        // Don't exit, just log the error
     }
 }
 
