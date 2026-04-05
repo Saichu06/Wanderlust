@@ -7,7 +7,7 @@ const app = express();
 const mongoose = require("mongoose");
 
 const Listing = require("./models/listing.js");
-const Review = require("./models/review.js");
+
 
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
@@ -28,7 +28,6 @@ const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const User = require("./models/user.js");
 
-const { listingSchema, reviewSchema } = require("./schema.js");
 
 const methodOverride = require("method-override");
 
@@ -50,7 +49,9 @@ if (!dbUrl) {
     process.exit(1);
 }
 
-console.log("DB URL:", dbUrl);
+if (process.env.NODE_ENV !== "production") {
+    console.log("DB URL:", dbUrl);
+}
 
 // ---------------- MAIN FUNCTION ----------------
 async function main() {
@@ -61,7 +62,7 @@ async function main() {
 
         // ✅ SESSION STORE (AFTER DB CONNECTS)
         const store = MongoStore.create({
-            mongoUrl: dbUrl,
+            client: mongoose.connection.getClient(),
             crypto: {
                 secret: process.env.SESSION_SECRET,
             },
